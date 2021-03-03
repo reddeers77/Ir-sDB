@@ -1,0 +1,77 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jan 27 20:50:19 2021
+
+@author: Egemen G
+"""
+
+# k-means clustering pracite with famous iris database. Deciding the number of clusters with Elbow Technique.
+
+from sklearn.cluster import KMeans
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from matplotlib import pyplot as plt
+from sklearn.datasets import load_iris
+
+iris = load_iris()
+
+df = pd.DataFrame(iris.data,columns=iris.feature_names)
+
+x = df.values[:,2:]
+
+from sklearn.preprocessing import StandardScaler
+
+ss = StandardScaler()
+X= ss.fit_transform(x)
+""" Deciding the number of clusters with elbow technique wich based on Sum of Sqaured Erros  WCSS  Within-Cluster-Sum-of-Squares """
+sse = []
+for i in range(1,11):
+    km = KMeans(n_clusters=i, init="k-means++")
+    km.fit(x)
+    sse.append(km.inertia_)
+print(sse)
+""" I choose k = 3 """
+
+
+plt.plot(range(1,11), sse)
+plt.show()
+
+km = KMeans(n_clusters=3, init="k-means++")
+km.fit(x)
+clusters = km.predict(x)
+
+df["Clusters"]= clusters
+
+df1 = df[df.Clusters==0]
+df2 = df[df.Clusters==1]
+df3 = df[df.Clusters==2]
+
+plt.scatter(df1.values[:,2], df1.values[:,3], color="green")
+plt.scatter(df2.values[:,2], df2.values[:,3], color="red")
+plt.scatter(df3.values[:,2], df3.values[:,3], color="blue")
+a = km.cluster_centers_
+
+plt.xlabel("Width")
+plt.ylabel("Length")
+
+print(a)
+plt.scatter(a[0][0], a[0][1], color="black", marker="*")
+plt.scatter(a[1][0], a[1][1], color="black", marker="*")
+plt.scatter(a[2][0], a[2][1], color="black", marker="*")
+plt.show()
+
+
+""" HIERERCHIGAL CLUSTURING ( AGGLOMERATIVE ) """
+
+from sklearn.cluster import AgglomerativeClustering
+
+ac = AgglomerativeClustering(n_clusters=3, affinity="euclidean", linkage="ward")
+
+agClusters = ac.fit_predict(x)
+
+plt.scatter(x[agClusters==0,0],x[agClusters==0,1], color="green")
+plt.scatter(x[agClusters==1,0],x[agClusters==1,1], color="red")
+plt.scatter(x[agClusters==2,0],x[agClusters==2,1], color="blue")
+
+import scipy.cluster.hierarchy as sch
+dendogram = sch.dendrogram(sch.linkage(x, method="ward"))
